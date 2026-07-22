@@ -34,6 +34,7 @@ jobs:
 
           import os
           import re
+          import html
 
 
           body = os.environ["ISSUE_BODY"]
@@ -51,33 +52,23 @@ jobs:
 
 
 
-          name = get_field("Your Name")
+          name = get_field("Your Name") or "Anonymous"
+
           city = get_field("Your Home City")
-          festival = get_field("First Liquicity Festival Attended")
-          track = get_field("Track That Made You Love Drum 'n' Bass")
-          message = get_field("Your Message To The World")
 
+          image_text = get_field("Upload Image Link")
 
-          image_section = get_field("Upload Image Link")
 
 
           image = ""
 
-
-          # Handle GitHub markdown image
           image_match = re.search(
               r"https?://[^\s\)\"<>]+",
-              image_section
+              image_text
           )
-
 
           if image_match:
               image = image_match.group(0)
-
-
-
-          if not name:
-              name = "Anonymous"
 
 
 
@@ -91,15 +82,65 @@ jobs:
 
           folder = f"people/{slug}"
 
+          counter = 2
 
-          os.makedirs(
-              folder,
-              exist_ok=True
+          while os.path.exists(folder):
+
+              folder = f"people/{slug}-{counter}"
+
+              counter += 1
+
+
+
+          os.makedirs(folder, exist_ok=True)
+
+
+
+          reserved = [
+              "Your Name",
+              "Your Home City",
+              "Upload Image Link"
+          ]
+
+
+
+          sections = re.findall(
+              r"### (.*?)\n\n(.*?)(?=\n###|$)",
+              body,
+              re.S
           )
 
 
 
-          html = [
+          story = []
+
+
+          for question, answer in sections:
+
+              if question in reserved:
+                  continue
+
+
+              question = html.escape(question.strip())
+
+              answer = html.escape(answer.strip())
+
+
+              story.append(
+                  f"""
+                  <div class="answer">
+
+                  <h3>{question}</h3>
+
+                  <p>{answer}</p>
+
+                  </div>
+                  """
+              )
+
+
+
+          page = [
 
               "<!DOCTYPE html>",
 
@@ -107,7 +148,7 @@ jobs:
 
               "<head>",
 
-              f"<title>{name} - Humans of Liquicity</title>",
+              f"<title>{html.escape(name)} - Humans of Liquicity</title>",
 
               '<link rel="stylesheet" href="../../assets/style.css">',
 
@@ -115,27 +156,33 @@ jobs:
 
               "</head>",
 
+
               "<body>",
+
 
               '<div class="profile">',
 
+
               f'<img src="{image}" class="profile-image">',
 
-              f"<h1>{name}</h1>",
 
-              f"<h3>📍 {city}</h3>",
+              f"<h1>{html.escape(name)}</h1>",
 
-              f"<p><strong>First Liquicity Festival:</strong><br>{festival}</p>",
 
-              f"<p><strong>Track that made you love Drum 'n' Bass:</strong><br>{track}</p>",
+              f"<h3>📍 {html.escape(city)}</h3>",
 
-              f"<blockquote>{message}</blockquote>",
+
+              "".join(story),
+
 
               '<a href="../../">← Back to Humans of Liquicity</a>',
 
+
               "</div>",
 
+
               "</body>",
+
 
               "</html>"
 
@@ -148,7 +195,7 @@ jobs:
               "w"
           ) as file:
 
-              file.write("\n".join(html))
+              file.write("\n".join(page))
 
 
           PY
@@ -169,7 +216,6 @@ jobs:
           import re
 
 
-
           cards = []
 
 
@@ -178,8 +224,7 @@ jobs:
 
 
               with open(file) as f:
-
-                  html = f.read()
+                  page = f.read()
 
 
 
@@ -188,45 +233,51 @@ jobs:
               )
 
 
-
-              name_match = re.search(
+              name = re.search(
                   r"<h1>(.*?)</h1>",
-                  html
+                  page
               )
 
 
-              image_match = re.search(
+              image = re.search(
                   r'<img src="([^"]+)"',
-                  html
+                  page
               )
 
 
-              city_match = re.search(
+              city = re.search(
                   r"<h3>📍 (.*?)</h3>",
-                  html
+                  page
               )
 
 
 
-              name = name_match.group(1) if name_match else folder.title()
+              name = name.group(1) if name else folder.title()
 
-              image = image_match.group(1) if image_match else ""
+              image = image.group(1) if image else ""
 
-              city = city_match.group(1) if city_match else ""
+              city = city.group(1) if city else ""
 
 
 
               cards.append(
-                  "\n".join([
-                      '<div class="human-card">',
-                      f'<a href="people/{folder}/">',
-                      f'<img src="{image}" class="human-image">',
-                      f'<h2>{name}</h2>',
-                      f'<p>📍 {city}</p>',
-                      '<p>Read their story →</p>',
-                      '</a>',
-                      '</div>'
-                  ])
+                  f"""
+                  <div class="human-card">
+
+                  <a href="people/{folder}/">
+
+                  <img src="{image}" class="human-image">
+
+                  <h2>{name}</h2>
+
+                  <p>📍 {city}</p>
+
+                  <p>Read story →</p>
+
+                  </a>
+
+                  </div>
+                  """
               )
 
 
@@ -243,11 +294,11 @@ jobs:
 
               '<link rel="stylesheet" href="assets/style.css">',
 
-              '<meta name="viewport" content="width=device-width, initial-scale=1">',
-
               "</head>",
 
+
               "<body>",
+
 
               "<header>",
 
@@ -257,11 +308,13 @@ jobs:
 
               "</header>",
 
+
               '<section class="gallery">',
 
               "".join(cards),
 
               "</section>",
+
 
               "</body>",
 
