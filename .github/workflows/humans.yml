@@ -35,15 +35,20 @@ jobs:
           import os
           import re
 
+
           body = os.environ["ISSUE_BODY"]
 
 
           def get_field(field):
+
               match = re.search(
-                  rf"### {re.escape(field)}\s*\n\s*(.*)",
-                  body
+                  rf"### {re.escape(field)}\s*\n\s*(.*?)(?=\n###|$)",
+                  body,
+                  re.S
               )
+
               return match.group(1).strip() if match else ""
+
 
 
           name = get_field("Your Name")
@@ -51,17 +56,28 @@ jobs:
           festival = get_field("First Liquicity Festival Attended")
           track = get_field("Track That Made You Love Drum 'n' Bass")
           message = get_field("Your Message To The World")
-          image = get_field("Upload Image Link")
 
 
-          # Convert GitHub markdown image into real URL
+          image_section = get_field("Upload Image Link")
+
+
+          image = ""
+
+
+          # Handle GitHub markdown image
           image_match = re.search(
-              r'\((https?://[^)]+)\)',
-              image
+              r"https?://[^\s\)\"<>]+",
+              image_section
           )
 
+
           if image_match:
-              image = image_match.group(1)
+              image = image_match.group(0)
+
+
+
+          if not name:
+              name = "Anonymous"
 
 
 
@@ -72,42 +88,72 @@ jobs:
           ).strip("-")
 
 
+
           folder = f"people/{slug}"
 
-          os.makedirs(folder, exist_ok=True)
+
+          os.makedirs(
+              folder,
+              exist_ok=True
+          )
 
 
-          lines = [
+
+          html = [
+
               "<!DOCTYPE html>",
+
               "<html>",
+
               "<head>",
+
               f"<title>{name} - Humans of Liquicity</title>",
+
               '<link rel="stylesheet" href="../../assets/style.css">',
+
               '<meta name="viewport" content="width=device-width, initial-scale=1">',
+
               "</head>",
+
               "<body>",
+
               '<div class="profile">',
+
               f'<img src="{image}" class="profile-image">',
+
               f"<h1>{name}</h1>",
+
               f"<h3>📍 {city}</h3>",
+
               f"<p><strong>First Liquicity Festival:</strong><br>{festival}</p>",
+
               f"<p><strong>Track that made you love Drum 'n' Bass:</strong><br>{track}</p>",
+
               f"<blockquote>{message}</blockquote>",
+
               '<a href="../../">← Back to Humans of Liquicity</a>',
+
               "</div>",
+
               "</body>",
+
               "</html>"
+
           ]
+
 
 
           with open(
               f"{folder}/index.html",
               "w"
           ) as file:
-              file.write("\n".join(lines))
+
+              file.write("\n".join(html))
 
 
           PY
+
+
 
 
 
@@ -117,18 +163,24 @@ jobs:
 
           python3 <<'PY'
 
+
           import glob
           import os
           import re
 
 
+
           cards = []
+
 
 
           for file in glob.glob("people/*/index.html"):
 
+
               with open(file) as f:
+
                   html = f.read()
+
 
 
               folder = os.path.basename(
@@ -136,71 +188,100 @@ jobs:
               )
 
 
-              name = re.search(
+
+              name_match = re.search(
                   r"<h1>(.*?)</h1>",
                   html
               )
 
 
-              image = re.search(
+              image_match = re.search(
                   r'<img src="([^"]+)"',
                   html
               )
 
 
-              city = re.search(
-                  r"📍 (.*?)</h3>",
+              city_match = re.search(
+                  r"<h3>📍 (.*?)</h3>",
                   html
               )
 
 
-              name = name.group(1) if name else folder.title()
-              image = image.group(1) if image else ""
-              city = city.group(1) if city else ""
+
+              name = name_match.group(1) if name_match else folder.title()
+
+              image = image_match.group(1) if image_match else ""
+
+              city = city_match.group(1) if city_match else ""
+
 
 
               cards.append(
-                  f"""
-                  <div class="human-card">
-                  <a href="people/{folder}/">
-                  <img src="{image}" class="human-image">
-                  <h2>{name}</h2>
-                  <p>📍 {city}</p>
-                  <p>Read their story →</p>
-                  </a>
-                  </div>
-                  """
+                  "\n".join([
+                      '<div class="human-card">',
+                      f'<a href="people/{folder}/">',
+                      f'<img src="{image}" class="human-image">',
+                      f'<h2>{name}</h2>',
+                      f'<p>📍 {city}</p>',
+                      '<p>Read their story →</p>',
+                      '</a>',
+                      '</div>'
+                  ])
               )
 
 
 
-          page = [
+          homepage = [
+
               "<!DOCTYPE html>",
+
               "<html>",
+
               "<head>",
+
               "<title>Humans of Liquicity</title>",
+
               '<link rel="stylesheet" href="assets/style.css">',
+
+              '<meta name="viewport" content="width=device-width, initial-scale=1">',
+
               "</head>",
+
               "<body>",
+
               "<header>",
+
               "<h1>🌌 Humans of Liquicity</h1>",
+
               "<p>The people who make the Liquicity family</p>",
+
               "</header>",
+
               '<section class="gallery">',
+
               "".join(cards),
+
               "</section>",
+
               "</body>",
+
               "</html>"
+
           ]
 
 
 
-          with open("index.html","w") as f:
-              f.write("\n".join(page))
+          with open(
+              "index.html",
+              "w"
+          ) as file:
 
+              file.write("\n".join(homepage))
 
 
           PY
+
+
 
 
 
