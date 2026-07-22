@@ -9,20 +9,15 @@ on:
 permissions:
   contents: write
 
-
 jobs:
 
   create-page:
 
     runs-on: ubuntu-latest
 
-
     steps:
 
-
       - uses: actions/checkout@v5
-
-
 
       - name: Create person page
 
@@ -33,38 +28,30 @@ jobs:
 
           mkdir -p people
 
-
           python3 <<'PY'
 
           import os
           import re
+          import html
 
 
           body = os.environ["ISSUE_BODY"]
 
 
           def get_field(field):
-
-              pattern = rf"### {field}\s*\n\s*(.*)"
-
-              match = re.search(pattern, body)
-
+              match = re.search(
+                  rf"### {field}\s*\n\s*(.*)",
+                  body
+              )
               return match.group(1).strip() if match else ""
 
 
-
           name = get_field("Your Name")
-
           city = get_field("Your Home City")
-
           festival = get_field("First Liquicity Festival Attended")
-
           track = get_field("Track That Made You Love Drum 'n' Bass")
-
           message = get_field("Your Message To The World")
-
           image = get_field("Upload Image Link")
-
 
 
           slug = re.sub(
@@ -74,208 +61,102 @@ jobs:
           ).strip("-")
 
 
+          folder = f"people/{slug}"
 
-          os.makedirs(
-              f"people/{slug}",
-              exist_ok=True
-          )
+          os.makedirs(folder, exist_ok=True)
 
 
-
-          html = f"""
-<!DOCTYPE html>
-<html>
-
-<head>
-
-<title>{name} - Humans of Liquicity</title>
-
-<link rel="stylesheet" href="../../assets/style.css">
-
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-</head>
-
-
-<body>
-
-<div class="card">
-
-
-<img src="{image}" style="width:100%;border-radius:20px;">
-
-
-<h1>{name}</h1>
-
-
-<h3>📍 {city}</h3>
-
-
-<p>
-<strong>First Liquicity Festival:</strong><br>
-{festival}
-</p>
-
-
-<p>
-<strong>Track that made you love Drum 'n' Bass:</strong><br>
-{track}
-</p>
-
-
-<blockquote>
-"{message}"
-</blockquote>
-
-
-</div>
-
-</body>
-
-</html>
-"""
+          lines = [
+              "<!DOCTYPE html>",
+              "<html>",
+              "<head>",
+              f"<title>{name} - Humans of Liquicity</title>",
+              '<link rel="stylesheet" href="../../assets/style.css">',
+              "</head>",
+              "<body>",
+              '<div class="card">',
+              f'<img src="{image}" style="width:100%;border-radius:20px;">',
+              f"<h1>{name}</h1>",
+              f"<h3>📍 {city}</h3>",
+              f"<p><strong>First Liquicity Festival:</strong><br>{festival}</p>",
+              f"<p><strong>Track that made you love Drum 'n' Bass:</strong><br>{track}</p>",
+              f"<blockquote>{message}</blockquote>",
+              "</div>",
+              "</body>",
+              "</html>"
+          ]
 
 
           with open(
-              f"people/{slug}/index.html",
+              f"{folder}/index.html",
               "w"
           ) as f:
-
-              f.write(html)
+              f.write("\n".join(lines))
 
 
           PY
-
-
-
 
 
       - name: Create gallery homepage
 
         run: |
 
-
           python3 <<'PY'
 
-
           import glob
-
           import os
-
 
 
           cards = []
 
 
-
           for folder in glob.glob("people/*/"):
-
 
               slug = os.path.basename(
                   os.path.normpath(folder)
               )
 
-
               name = slug.replace("-", " ").title()
 
+              cards.append(
+                  f'<a class="card" href="people/{slug}/"><h2>{name}</h2><p>Read their story →</p></a>'
+              )
 
 
-              cards.append(f"""
-
-<a class="card" href="people/{slug}/">
-
-<h2>{name}</h2>
-
-<p>
-Read their Liquicity story →
-</p>
-
-</a>
-
-""")
-
-
-
-
-
-          html = f"""
-
-<!DOCTYPE html>
-
-<html>
+          html = "\n".join([
+              "<!DOCTYPE html>",
+              "<html>",
+              "<head>",
+              "<title>Humans of Liquicity</title>",
+              '<link rel="stylesheet" href="assets/style.css">',
+              "</head>",
+              "<body>",
+              "<h1>🌌 Humans of Liquicity</h1>",
+              "<main>",
+              *cards,
+              "</main>",
+              "</body>",
+              "</html>"
+          ])
 
 
-<head>
-
-<title>Humans of Liquicity</title>
-
-<link rel="stylesheet" href="assets/style.css">
-
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-</head>
-
-
-<body>
-
-
-<header>
-
-<h1>🌌 Humans of Liquicity</h1>
-
-<p>
-Stories from the Liquicity family
-</p>
-
-</header>
-
-
-<main>
-
-{''.join(cards)}
-
-</main>
-
-
-</body>
-
-
-</html>
-
-"""
-
-
-
-          with open(
-              "index.html",
-              "w"
-          ) as f:
-
+          with open("index.html","w") as f:
               f.write(html)
 
 
-
           PY
-
-
-
 
 
       - name: Commit pages
 
         run: |
 
-
           git config user.name github-actions
-
 
           git config user.email github-actions@github.com
 
-
           git add .
 
-
           git commit -m "Update Humans of Liquicity pages" || echo "No changes"
-
 
           git push
