@@ -21,6 +21,7 @@ def get_field(name):
     return match.group(1).strip() if match else ""
 
 
+
 # -----------------------
 # Create person page
 # -----------------------
@@ -36,13 +37,49 @@ if body:
 
     image = ""
 
+
+    # Look in image field first
+
     image_match = re.search(
         r"https?://[^\s\)\"<>]+",
         image_text
     )
 
+
+    # Look anywhere in issue body
+
+    if not image_match:
+
+        image_match = re.search(
+            r"https?://github\.com/user-attachments/[^\s\)\"<>]+",
+            body
+        )
+
+
+    # Look for markdown image format
+
+    if not image_match:
+
+        image_match = re.search(
+            r"\((https?://[^)]+)\)",
+            body
+        )
+
+
+    # Look for HTML image format
+
+    if not image_match:
+
+        image_match = re.search(
+            r'src="([^"]+)"',
+            body
+        )
+
+
     if image_match:
-        image = image_match.group(0)
+
+        image = image_match.group(1)
+
 
 
     slug = re.sub(
@@ -53,6 +90,7 @@ if body:
 
 
     folder = f"people/{slug}"
+
 
     os.makedirs(
         folder,
@@ -92,11 +130,13 @@ if body:
         )
 
 
+
     person = []
 
     person.append("<!DOCTYPE html>")
     person.append("<html>")
     person.append("<head>")
+
     person.append(
         "<title>"
         + html.escape(name)
@@ -113,7 +153,10 @@ if body:
 
     person.append("</head>")
     person.append("<body>")
-    person.append("<div class='profile'>")
+
+    person.append(
+        "<div class='profile'>"
+    )
 
 
     if image:
@@ -149,9 +192,18 @@ if body:
     )
 
 
-    person.append("</div>")
-    person.append("</body>")
-    person.append("</html>")
+    person.append(
+        "</div>"
+    )
+
+    person.append(
+        "</body>"
+    )
+
+    person.append(
+        "</html>"
+    )
+
 
 
     with open(
@@ -163,6 +215,7 @@ if body:
         f.write(
             "\n".join(person)
         )
+
 
 
 # -----------------------
@@ -182,6 +235,7 @@ for file in glob.glob(
     ) as f:
 
         page = f.read()
+
 
 
     folder = os.path.basename(
@@ -207,6 +261,7 @@ for file in glob.glob(
     )
 
 
+
     name = (
         name_match.group(1)
         if name_match
@@ -226,6 +281,7 @@ for file in glob.glob(
         if city_match
         else ""
     )
+
 
 
     cards.append(
@@ -250,11 +306,13 @@ for file in glob.glob(
     )
 
 
+
 homepage = []
 
 homepage.append("<!DOCTYPE html>")
 homepage.append("<html>")
 homepage.append("<head>")
+
 homepage.append(
     "<title>Humans of Liquicity</title>"
 )
@@ -296,6 +354,7 @@ homepage.append(
 
 homepage.append("</body>")
 homepage.append("</html>")
+
 
 
 with open(
