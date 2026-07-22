@@ -4,9 +4,7 @@
 
     mkdir -p people
 
-
     BODY='${{ github.event.issue.body }}'
-
 
     NAME=$(echo "$BODY" | awk '/### Your Name/{getline; print}')
     CITY=$(echo "$BODY" | awk '/### Your Home City/{getline; print}')
@@ -15,14 +13,12 @@
     MESSAGE=$(echo "$BODY" | awk '/### Your Message To The World/{getline; print}')
     IMAGE=$(echo "$BODY" | awk '/### Upload Image Link/{getline; print}')
 
-
     SLUG=$(echo "$NAME" \
     | tr '[:upper:]' '[:lower:]' \
     | sed 's/ /-/g')
 
 
     cat <<EOF > people/$SLUG.html
-
 <!DOCTYPE html>
 <html>
 
@@ -34,43 +30,33 @@
 
 </head>
 
-
 <body>
 
 <div class="card">
 
-
-<img src="$IMAGE"
-style="width:100%;border-radius:20px;">
-
+<img src="$IMAGE" style="width:100%;border-radius:20px;">
 
 <h1>$NAME</h1>
 
-
 <h3>📍 $CITY</h3>
-
 
 <p>
 <strong>First Liquicity Festival:</strong><br>
 $FESTIVAL
 </p>
 
-
 <p>
 <strong>Track that made you love Drum 'n' Bass:</strong><br>
 $TRACK
 </p>
 
-
 <blockquote>
 "$MESSAGE"
 </blockquote>
-
 
 </div>
 
 </body>
 
 </html>
-
 EOF
