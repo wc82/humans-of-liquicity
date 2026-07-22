@@ -183,10 +183,10 @@ for file in glob.glob(
     )
 
 
-    photo = re.search(
-        r"<img class='profile-image' src='(.*?)'",
-        page
-    )
+photo = re.search(
+    r"<img[^>]+src=['\"]([^'\"]+)['\"]",
+    page
+)
 
 
     location = re.search(
