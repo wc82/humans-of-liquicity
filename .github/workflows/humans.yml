@@ -54,6 +54,17 @@ jobs:
           image = get_field("Upload Image Link")
 
 
+          # Convert GitHub markdown image into real URL
+          image_match = re.search(
+              r'\((https?://[^)]+)\)',
+              image
+          )
+
+          if image_match:
+              image = image_match.group(1)
+
+
+
           slug = re.sub(
               r"[^a-z0-9]+",
               "-",
@@ -99,6 +110,7 @@ jobs:
           PY
 
 
+
       - name: Create gallery homepage
 
         run: |
@@ -129,10 +141,12 @@ jobs:
                   html
               )
 
+
               image = re.search(
-                  r'<img src="(.*?)"',
+                  r'<img src="([^"]+)"',
                   html
               )
+
 
               city = re.search(
                   r"📍 (.*?)</h3>",
@@ -159,6 +173,7 @@ jobs:
               )
 
 
+
           page = [
               "<!DOCTYPE html>",
               "<html>",
@@ -179,11 +194,14 @@ jobs:
           ]
 
 
+
           with open("index.html","w") as f:
               f.write("\n".join(page))
 
 
+
           PY
+
 
 
       - name: Commit pages
