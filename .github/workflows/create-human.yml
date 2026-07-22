@@ -1,0 +1,81 @@
+name: Create Humans Story Page
+
+on:
+  issues:
+    types:
+      - opened
+
+permissions:
+  contents: write
+
+
+jobs:
+
+  create-page:
+
+    if: contains(github.event.issue.labels.*.name, 'human-story')
+
+    runs-on: ubuntu-latest
+
+
+    steps:
+
+    - uses: actions/checkout@v4
+
+
+    - name: Create page
+
+      run: |
+
+        mkdir -p people
+
+
+        NAME="${{ github.event.issue.title }}"
+        SLUG=$(echo "$NAME" | sed 's/Human: //' | tr ' ' '-' | tr '[:upper:]' '[:lower:]')
+
+
+        cat <<EOF > people/$SLUG.html
+
+<html>
+
+<head>
+<title>$NAME - Humans of Liquicity</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+
+
+<body>
+
+<div class="card">
+
+<h1>$NAME</h1>
+
+<pre>
+
+${{ github.event.issue.body }}
+
+</pre>
+
+</div>
+
+</body>
+
+</html>
+
+EOF
+
+
+
+    - name: Commit page
+
+      run: |
+
+        git config user.name github-actions
+
+        git config user.email github-actions@github.com
+
+        git add .
+
+        git commit -m "New Humans of Liquicity story"
+
+        git push
