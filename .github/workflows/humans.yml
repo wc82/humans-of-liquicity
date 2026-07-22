@@ -1,67 +1,116 @@
+name: Humans of Liquicity Story Publisher
+
+on:
+  issues:
+    types:
+      - opened
+      - edited
+
+permissions:
+  contents: write
+
+jobs:
+
+  create-page:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - name: Create page
+
         env:
           ISSUE_BODY: ${{ github.event.issue.body }}
-    - name: Create page
+          ISSUE_TITLE: ${{ github.event.issue.title }}
 
-      run: |
+        run: |
 
-        mkdir -p people
+          mkdir -p people
 
-        python3 <<'PY'
+          python3 <<'PY'
 
-        import os, re
+          import os
+          import re
 
-        body = os.environ["ISSUE_BODY"]
+          body = os.environ["ISSUE_BODY"]
+          title = os.environ["ISSUE_TITLE"]
 
-        def get_field(name):
-            match = re.search(
-                rf"### {name}\s+(.*)",
-                body
-            )
-            return match.group(1).strip() if match else ""
+          def get_field(field):
+              pattern = rf"### {field}\s*\n\s*(.*)"
+              match = re.search(pattern, body)
+              return match.group(1).strip() if match else ""
 
-        name = get_field("Your Name")
-        city = get_field("Your Home City")
-        festival = get_field("First Liquidity Festival Attended")
-        track = get_field("Track That Made You Love Drum 'n' Bass")
-        message = get_field("Your Message To The World")
-        image = get_field("Upload Image Link")
+          name = get_field("Your Name")
+          city = get_field("Your Home City")
+          festival = get_field("First Liquicity Festival Attended")
+          track = get_field("Track That Made You Love Drum 'n' Bass")
+          message = get_field("Your Message To The World")
+          image = get_field("Upload Image Link")
 
-        slug = re.sub(
-            r'[^a-z0-9]+',
-            '-',
-            name.lower()
-        ).strip('-')
+          slug = re.sub(
+              r"[^a-z0-9]+",
+              "-",
+              name.lower()
+          ).strip("-")
 
-        html = f"""
-<!DOCTYPE html>
-<html>
-<head>
-<title>{name} - Humans of Liquicity</title>
-<link rel="stylesheet" href="../assets/style.css">
-</head>
+          html = f"""
+          <!DOCTYPE html>
+          <html>
 
-<body>
+          <head>
+          <title>{name} - Humans of Liquicity</title>
+          <link rel="stylesheet" href="../assets/style.css">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          </head>
 
-<div class="card">
+          <body>
 
-<img src="{image}" style="width:100%;border-radius:20px;">
+          <div class="card">
 
-<h1>{name}</h1>
+          <img src="{image}" style="width:100%;border-radius:20px;">
 
-<h3>📍 {city}</h3>
+          <h1>{name}</h1>
 
-<p><strong>First Liquicity Festival:</strong><br>{festival}</p>
+          <h3>📍 {city}</h3>
 
-<p><strong>Track that made you love Drum 'n' Bass:</strong><br>{track}</p>
+          <p>
+          <strong>First Liquicity Festival:</strong><br>
+          {festival}
+          </p>
 
-<blockquote>{message}</blockquote>
+          <p>
+          <strong>Track that made you love Drum 'n' Bass:</strong><br>
+          {track}
+          </p>
 
-</div>
+          <blockquote>
+          "{message}"
+          </blockquote>
 
-</body>
-</html>
-"""
+          </div>
 
-        open(f"people/{slug}.html","w").write(html)
+          </body>
+          </html>
+          """
 
-        PY          
+          with open(f"people/{slug}.html", "w") as f:
+              f.write(html)
+
+          PY
+
+
+      - name: Commit page
+
+        run: |
+
+          git config user.name github-actions
+
+          git config user.email github-actions@github.com
+
+          git add .
+
+          git commit -m "New Humans of Liquicity story" || echo "No changes to commit"
+
+          git push
