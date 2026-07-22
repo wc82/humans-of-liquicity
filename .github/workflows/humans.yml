@@ -1,118 +1,67 @@
-name: Humans of Liquicity Story Publisher
-
-on:
-  issues:
-    types:
-      - opened
-      - edited
-
-permissions:
-  contents: write
-
-
-jobs:
-
-  create-page:
-
-    runs-on: ubuntu-latest
-
-    steps:
-
-    - uses: actions/checkout@v4
-
-
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
     - name: Create page
 
       run: |
 
         mkdir -p people
 
+        python3 <<'PY'
 
-        BODY='${{ github.event.issue.body }}'
+        import os, re
 
+        body = os.environ["ISSUE_BODY"]
 
-        NAME=$(echo "$BODY" | awk '/### Your Name/{getline; print}')
-        CITY=$(echo "$BODY" | awk '/### Your Home City/{getline; print}')
-        FESTIVAL=$(echo "$BODY" | awk '/### First Liquicity Festival Attended/{getline; print}')
-        TRACK=$(echo "$BODY" | awk '/### Track That Made You Love Drum .n. Bass/{getline; print}')
-        MESSAGE=$(echo "$BODY" | awk '/### Your Message To The World/{getline; print}')
-        IMAGE=$(echo "$BODY" | awk '/### Upload Image Link/{getline; print}')
+        def get_field(name):
+            match = re.search(
+                rf"### {name}\s+(.*)",
+                body
+            )
+            return match.group(1).strip() if match else ""
 
+        name = get_field("Your Name")
+        city = get_field("Your Home City")
+        festival = get_field("First Liquidity Festival Attended")
+        track = get_field("Track That Made You Love Drum 'n' Bass")
+        message = get_field("Your Message To The World")
+        image = get_field("Upload Image Link")
 
-        SLUG=$(echo "$NAME" \
-        | tr '[:upper:]' '[:lower:]' \
-        | sed 's/[^a-z0-9]/-/g' \
-        | sed 's/-\+/-/g' \
-        | sed 's/^-//' \
-        | sed 's/-$//')
+        slug = re.sub(
+            r'[^a-z0-9]+',
+            '-',
+            name.lower()
+        ).strip('-')
 
-
-        cat <<EOF > people/$SLUG.html
+        html = f"""
 <!DOCTYPE html>
 <html>
-
 <head>
-
-<title>$NAME - Humans of Liquicity</title>
-
+<title>{name} - Humans of Liquicity</title>
 <link rel="stylesheet" href="../assets/style.css">
-
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
 </head>
-
 
 <body>
 
 <div class="card">
 
+<img src="{image}" style="width:100%;border-radius:20px;">
 
-<img src="$IMAGE" 
-style="width:100%;border-radius:20px;">
+<h1>{name}</h1>
 
+<h3>📍 {city}</h3>
 
-<h1>$NAME</h1>
+<p><strong>First Liquicity Festival:</strong><br>{festival}</p>
 
+<p><strong>Track that made you love Drum 'n' Bass:</strong><br>{track}</p>
 
-<h3>📍 $CITY</h3>
-
-
-<p>
-<strong>First Liquicity Festival:</strong><br>
-$FESTIVAL
-</p>
-
-
-<p>
-<strong>Track that made you love Drum 'n' Bass:</strong><br>
-$TRACK
-</p>
-
-
-<blockquote>
-"$MESSAGE"
-</blockquote>
-
+<blockquote>{message}</blockquote>
 
 </div>
 
 </body>
-
 </html>
-EOF
+"""
 
+        open(f"people/{slug}.html","w").write(html)
 
-
-    - name: Commit page
-
-      run: |
-
-        git config user.name github-actions
-
-        git config user.email github-actions@github.com
-
-        git add .
-
-        git commit -m "New Humans of Liquicity story" || echo "No changes to commit"
-
-        git push
+        PY          
