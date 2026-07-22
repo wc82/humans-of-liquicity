@@ -38,6 +38,7 @@ button {
     border:0;
     font-size:18px;
     background:#ffcc00;
+    cursor:pointer;
 }
 
 .question {
@@ -53,6 +54,11 @@ img {
     margin-bottom:20px;
 }
 
+#status {
+    margin:15px 0;
+    padding:10px;
+}
+
 </style>
 
 </head>
@@ -61,6 +67,7 @@ img {
 <body>
 
 <div class="container">
+
 
 <h1>🌌 Humans of Liquicity</h1>
 
@@ -77,6 +84,9 @@ capture="environment">
 
 
 <img id="preview" style="display:none;">
+
+
+<div id="status"></div>
 
 
 
@@ -110,6 +120,7 @@ capture="environment">
 </div>
 
 
+
 <button onclick="addQuestion()">
 + Add Question
 </button>
@@ -130,9 +141,28 @@ Publish Story
 <script>
 
 
+// Cloudinary settings
+
+const CLOUD_NAME = "fpktjto6";
+
+const UPLOAD_PRESET = "humans";
+
+const CLOUD_FOLDER = "humans-of-liquicity";
+
+
+
+let uploadedImage = "";
+
+
+
+
+// Preview photo
+
 document
 .getElementById("photo")
-.addEventListener("change", function(e){
+.addEventListener(
+"change",
+function(e){
 
 const file=e.target.files[0];
 
@@ -158,11 +188,14 @@ reader.readAsDataURL(file);
 
 
 
+
+
 function addQuestion(){
 
 let div=document.createElement("div");
 
 div.className="question";
+
 
 div.innerHTML=`
 
@@ -170,11 +203,13 @@ div.innerHTML=`
 
 <input class="q">
 
+
 <label>Answer</label>
 
 <textarea class="a"></textarea>
 
 `;
+
 
 document
 .getElementById("questions")
@@ -184,44 +219,171 @@ document
 
 
 
+
+async function uploadImage(){
+
+
+const file =
+document
+.getElementById("photo")
+.files[0];
+
+
+if(!file){
+
+return "";
+
+}
+
+
+document
+.getElementById("status")
+.innerHTML =
+"Uploading photo... ☁️";
+
+
+
+const formData =
+new FormData();
+
+
+formData.append(
+"file",
+file
+);
+
+
+formData.append(
+"upload_preset",
+UPLOAD_PRESET
+);
+
+
+formData.append(
+"folder",
+CLOUD_FOLDER
+);
+
+
+
+const response =
+await fetch(
+
+"https://api.cloudinary.com/v1_1/"
++
+CLOUD_NAME
++
+"/image/upload",
+
+{
+
+method:"POST",
+
+body:formData
+
+}
+
+);
+
+
+
+const data =
+await response.json();
+
+
+
+if(!data.secure_url){
+
+throw new Error(
+"Cloudinary upload failed"
+);
+
+}
+
+
+
+uploadedImage =
+data.secure_url;
+
+
+
+return uploadedImage;
+
+
+}
+
+
+
+
+
 async function publish(){
 
-const token = localStorage.getItem("github_token");
 
 
-if(!token){
+try {
 
-const newToken = prompt(
+
+
+let imageURL =
+await uploadImage();
+
+
+
+const token =
+localStorage.getItem(
+"github_token"
+);
+
+
+
+let githubToken = token;
+
+
+
+if(!githubToken){
+
+
+githubToken =
+prompt(
 "Enter GitHub token"
 );
 
-if(!newToken){
-    return;
+
+if(!githubToken){
+
+return;
+
 }
+
 
 localStorage.setItem(
 "github_token",
-newToken
+githubToken
 );
+
 
 }
 
-
-const githubToken =
-localStorage.getItem("github_token");
 
 
 
 const name =
-document.getElementById("name").value;
+document
+.getElementById("name")
+.value;
+
 
 
 const city =
-document.getElementById("city").value;
+document
+.getElementById("city")
+.value;
 
 
 
-let body = `### Your Name
+let body =
+
+`### Your Name
 
 ${name}
 
@@ -233,22 +395,30 @@ ${city}
 
 
 
+
+
 document
 .querySelectorAll(".question")
-.forEach(q => {
+.forEach(q=>{
 
 
 const question =
-q.querySelector(".q").value;
+q.querySelector(".q")
+.value;
 
 
 const answer =
-q.querySelector(".a").value;
+q.querySelector(".a")
+.value;
+
 
 
 if(question){
 
-body += `
+
+body +=
+
+`
 
 ### ${question}
 
@@ -258,22 +428,40 @@ ${answer}
 
 }
 
+
 });
 
 
 
-body += `
+
+
+body +=
+
+`
 
 ### Upload Image Link
 
-PASTE IMAGE URL HERE
+${imageURL}
 
 `;
 
 
 
-const response = await fetch(
+
+
+document
+.getElementById("status")
+.innerHTML =
+"Creating story... 🚀";
+
+
+
+
+const response =
+await fetch(
+
 "https://api.github.com/repos/wc82/humans-of-liquicity/issues",
+
 {
 
 method:"POST",
@@ -288,6 +476,7 @@ headers:{
 
 },
 
+
 body:JSON.stringify({
 
 title:name,
@@ -295,36 +484,70 @@ title:name,
 body:body,
 
 labels:[
+
 "human-story"
+
 ]
 
 })
 
-});
+}
+
+);
+
+
 
 
 
 if(response.ok){
 
-alert(
-"Story published successfully 🎉"
-);
+
+document
+.getElementById("status")
+.innerHTML =
+"Story published successfully 🎉";
+
 
 }
 
+
 else {
+
 
 const error =
 await response.text();
 
+
 alert(
-"GitHub error:\n" + error
+"GitHub error:\n"
++
+error
 );
 
+
 }
 
 
+
 }
+
+
+catch(error){
+
+
+alert(
+"Error:\n"
++
+error.message
+);
+
+
+}
+
+
+
+}
+
 
 
 </script>
