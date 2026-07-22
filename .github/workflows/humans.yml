@@ -210,22 +210,19 @@ jobs:
 
           python3 <<'PY'
 
-
           import glob
           import os
           import re
+          import html
 
 
           cards = []
 
 
-
           for file in glob.glob("people/*/index.html"):
 
-
-              with open(file) as f:
+              with open(file, encoding="utf-8") as f:
                   page = f.read()
-
 
 
               folder = os.path.basename(
@@ -233,107 +230,127 @@ jobs:
               )
 
 
-              name = re.search(
+              name_match = re.search(
                   r"<h1>(.*?)</h1>",
                   page
               )
 
 
-              image = re.search(
+              image_match = re.search(
                   r'<img src="([^"]+)"',
                   page
               )
 
 
-              city = re.search(
+              city_match = re.search(
                   r"<h3>📍 (.*?)</h3>",
                   page
               )
 
 
+              name = html.escape(
+                  name_match.group(1)
+                  if name_match else folder.title()
+              )
 
-              name = name.group(1) if name else folder.title()
 
-              image = image.group(1) if image else ""
+              image = (
+                  image_match.group(1)
+                  if image_match else ""
+              )
 
-              city = city.group(1) if city else ""
+
+              city = html.escape(
+                  city_match.group(1)
+                  if city_match else ""
+              )
 
 
 
               cards.append(
                   f"""
-                  <div class="human-card">
+                  <article class="human-card">
 
-                  <a href="people/{folder}/">
+                      <a href="people/{folder}/">
 
-                  <img src="{image}" class="human-image">
+                          <img 
+                          src="{image}" 
+                          class="human-image"
+                          loading="lazy">
 
-                  <h2>{name}</h2>
+                          <div class="card-content">
 
-                  <p>📍 {city}</p>
+                              <h2>{name}</h2>
 
-                  <p>Read story →</p>
+                              <p>📍 {city}</p>
 
-                  </a>
+                              <span>
+                              Read their story →
+                              </span>
 
-                  </div>
+                          </div>
+
+                      </a>
+
+                  </article>
                   """
               )
 
 
 
-          homepage = [
+          page = f"""
+<!DOCTYPE html>
+<html>
 
-              "<!DOCTYPE html>",
+<head>
 
-              "<html>",
+<title>Humans of Liquicity</title>
 
-              "<head>",
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-              "<title>Humans of Liquicity</title>",
+<link rel="stylesheet" href="assets/style.css">
 
-              '<link rel="stylesheet" href="assets/style.css">',
-
-              "</head>",
-
-
-              "<body>",
+</head>
 
 
-              "<header>",
-
-              "<h1>🌌 Humans of Liquicity</h1>",
-
-              "<p>The people who make the Liquicity family</p>",
-
-              "</header>",
+<body>
 
 
-              '<section class="gallery">',
+<header class="hero">
 
-              "".join(cards),
+<h1>🌌 Humans of Liquicity</h1>
 
-              "</section>",
+<p>
+The people, stories and memories behind the Liquicity family
+</p>
+
+</header>
 
 
-              "</body>",
 
-              "</html>"
+<main class="gallery">
 
-          ]
+{"".join(cards)}
 
+</main>
+
+
+</body>
+
+</html>
+"""
 
 
           with open(
               "index.html",
-              "w"
-          ) as file:
+              "w",
+              encoding="utf-8"
+          ) as f:
 
-              file.write("\n".join(homepage))
+              f.write(page)
 
 
           PY
-
 
 
 
