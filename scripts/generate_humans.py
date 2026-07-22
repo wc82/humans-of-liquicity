@@ -3,6 +3,8 @@ import re
 import glob
 import html
 
+print("Humans publisher v2 - Cloudinary enabled")
+
 
 body = os.environ.get(
     "ISSUE_BODY",
