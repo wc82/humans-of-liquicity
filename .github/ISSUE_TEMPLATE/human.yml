@@ -1,0 +1,34 @@
+name: Humans of Liquicity Story
+description: Submit your Liquicity story
+title: "Human: "
+body:
+
+- type: input
+  id: name
+  attributes:
+    label: Your Name
+
+- type: input
+  id: city
+  attributes:
+    label: Your Home City
+
+- type: input
+  id: festival
+  attributes:
+    label: First Liquicity Festival Attended
+
+- type: input
+  id: track
+  attributes:
+    label: Track That Made You Love Drum 'n' Bass
+
+- type: textarea
+  id: message
+  attributes:
+    label: Your Message To The World
+
+- type: textarea
+  id: image
+  attributes:
+    label: Upload Image Link
