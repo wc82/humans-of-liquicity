@@ -1,0 +1,90 @@
+name: Create Human Story
+
+on:
+  issues:
+    types:
+      - opened
+
+
+permissions:
+  contents: write
+  issues: write
+
+
+jobs:
+
+ create-page:
+
+  runs-on: ubuntu-latest
+
+
+  steps:
+
+  - uses: actions/checkout@v4
+
+
+  - name: Generate story page
+
+    run: |
+
+      mkdir -p people
+
+
+      NAME=$(echo "${{github.event.issue.title}}" | sed 's/Human: //')
+
+      FILE=$(echo $NAME | tr ' ' '-' | tr '[:upper:]' '[:lower:]')
+
+
+      cat > people/$FILE.html <<EOF
+
+      <!DOCTYPE html>
+
+      <html>
+
+      <head>
+
+      <title>$NAME - Humans of Liquicity</title>
+
+      <link rel="stylesheet" href="../assets/style.css">
+
+      </head>
+
+
+      <body>
+
+
+      <div class="card">
+
+      <h1>$NAME</h1>
+
+
+      <pre>
+
+      ${{github.event.issue.body}}
+
+      </pre>
+
+
+      </div>
+
+
+      </body>
+
+      </html>
+
+      EOF
+
+
+  - name: Commit
+
+    run: |
+
+      git config user.name github-actions
+
+      git config user.email github-actions@github.com
+
+      git add .
+
+      git commit -m "New Humans of Liquicity story"
+
+      git push
