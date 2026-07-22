@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Create Humans of Liquicity Story</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+body {
+    font-family: Arial, sans-serif;
+    background:#111;
+    color:white;
+    padding:20px;
+}
+
+.container {
+    max-width:600px;
+    margin:auto;
+}
+
+input, textarea {
+    width:100%;
+    padding:12px;
+    margin:8px 0 20px 0;
+    border-radius:10px;
+    border:0;
+    font-size:16px;
+}
+
+button {
+
+    width:100%;
+    padding:15px;
+    border-radius:12px;
+    border:0;
+    font-size:18px;
+    background:#ffcc00;
+    cursor:pointer;
+
+}
+
+
+.question {
+
+    background:#222;
+    padding:15px;
+    border-radius:15px;
+    margin-bottom:20px;
+
+}
+
+
+img {
+
+    width:100%;
+    border-radius:20px;
+    margin-bottom:20px;
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+<h1>🌌 Humans of Liquicity</h1>
+
+<h2>Create Story</h2>
+
+
+<label>Photo</label>
+
+<input 
+type="file"
+id="photo"
+accept="image/*"
+capture="environment"
+>
+
+
+<img id="preview" style="display:none;">
+
+
+
+<label>Name</label>
+
+<input id="name">
+
+
+
+<label>Home City</label>
+
+<input id="city">
+
+
+
+<div id="questions">
+
+
+<div class="question">
+
+<label>Question</label>
+
+<input class="q">
+
+
+<label>Answer</label>
+
+<textarea class="a"></textarea>
+
+</div>
+
+
+</div>
+
+
+
+<button onclick="addQuestion()">
++ Add Question
+</button>
+
+
+<br><br>
+
+
+<button onclick="publish()">
+Publish Story
+</button>
+
+
+
+</div>
+
+
+
+<script>
+
+
+let imageURL = "";
+
+
+
+document
+.getElementById("photo")
+.addEventListener(
+"change",
+function(e){
+
+const file=e.target.files[0];
+
+if(file){
+
+const reader=new FileReader();
+
+reader.onload=function(){
+
+let img=document.getElementById("preview");
+
+img.src=reader.result;
+
+img.style.display="block";
+
+}
+
+reader.readAsDataURL(file);
+
+}
+
+});
+
+
+
+
+function addQuestion(){
+
+let div=document.createElement("div");
+
+div.className="question";
+
+div.innerHTML=`
+
+<label>Question</label>
+
+<input class="q">
+
+
+<label>Answer</label>
+
+<textarea class="a"></textarea>
+
+`;
+
+document
+.getElementById("questions")
+.appendChild(div);
+
+}
+
+
+
+
+
+async function publish(){
+
+
+let name=document
+.getElementById("name")
+.value;
+
+
+let city=document
+.getElementById("city")
+.value;
+
+
+
+let body=`### Your Name
+
+${name}
+
+### Your Home City
+
+${city}
+
+`;
+
+
+
+let questions=document
+.querySelectorAll(".question");
+
+
+
+questions.forEach(q=>{
+
+let question=q.querySelector(".q").value;
+
+let answer=q.querySelector(".a").value;
+
+
+if(question){
+
+body+=`
+
+### ${question}
+
+${answer}
+
+`;
+
+}
+
+});
+
+
+
+body+=`
+
+### Upload Image Link
+
+${imageURL}
+
+`;
+
+
+
+alert(
+"Next step: connect GitHub token"
+);
+
+
+console.log(body);
+
+
+}
+
+
+</script>
+
+
+</body>
+
+</html>
