@@ -211,6 +211,31 @@ document
 
 async function publish(){
 
+const token = localStorage.getItem("github_token");
+
+
+if(!token){
+
+let newToken = prompt(
+"Enter GitHub token"
+);
+
+if(!newToken){
+    return;
+}
+
+localStorage.setItem(
+"github_token",
+newToken
+);
+
+}
+
+
+const githubToken =
+localStorage.getItem("github_token");
+
+
 
 let name=document
 .getElementById("name")
@@ -235,21 +260,23 @@ ${city}
 
 
 
-let questions=document
-.querySelectorAll(".question");
+document
+.querySelectorAll(".question")
+.forEach(q=>{
 
 
+let question =
+q.querySelector(".q").value;
 
-questions.forEach(q=>{
 
-let question=q.querySelector(".q").value;
+let answer =
+q.querySelector(".a").value;
 
-let answer=q.querySelector(".a").value;
 
 
 if(question){
 
-body+=`
+body += `
 
 ### ${question}
 
@@ -259,11 +286,12 @@ ${answer}
 
 }
 
+
 });
 
 
 
-body+=`
+body += `
 
 ### Upload Image Link
 
@@ -273,12 +301,59 @@ ${imageURL}
 
 
 
+const response =
+await fetch(
+"https://api.github.com/repos/wc82/humans-of-liquicity/issues",
+{
+
+method:"POST",
+
+headers:{
+
+"Authorization":
+"Bearer " + githubToken,
+
+"Accept":
+"application/vnd.github+json"
+
+},
+
+body:JSON.stringify({
+
+title:name,
+
+body:body,
+
+labels:[
+"human-story"
+]
+
+})
+
+});
+
+
+
+if(response.ok){
+
 alert(
-"Next step: connect GitHub token"
+"Story published! 🎉"
 );
 
+location.reload();
 
-console.log(body);
+
+}
+else {
+
+let error =
+await response.text();
+
+alert(
+"GitHub error:\n" + error
+);
+
+}
 
 
 }
