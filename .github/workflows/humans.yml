@@ -6,6 +6,8 @@ on:
       - opened
       - edited
 
+      workflow_dispatch:
+
 permissions:
   contents: write
 
@@ -23,8 +25,7 @@ jobs:
       - name: Generate Humans pages
 
         env:
-          ISSUE_BODY: ${{ github.event.issue.body }}
-
+  ISSUE_BODY: ${{ github.event.issue.body || '' }}
         run: |
 
           python3 scripts/generate_humans.py
