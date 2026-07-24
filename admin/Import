@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Import Humans of Liquicity Interview</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+body {
+    font-family: Arial, sans-serif;
+    background:#111;
+    color:white;
+    padding:20px;
+}
+
+.container {
+    max-width:600px;
+    margin:auto;
+}
+
+input, textarea, select {
+
+    width:100%;
+    padding:12px;
+    margin:10px 0 20px;
+
+    border-radius:10px;
+    border:0;
+
+    font-size:16px;
+
+    box-sizing:border-box;
+
+}
+
+
+button {
+
+    width:100%;
+    padding:15px;
+
+    background:#ffcc00;
+
+    border:0;
+
+    border-radius:12px;
+
+    font-size:18px;
+
+}
+
+
+.question {
+
+    background:#222;
+
+    padding:15px;
+
+    border-radius:15px;
+
+}
+
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+<h1>🌌 Humans of Liquicity</h1>
+
+<h2>Import Interview</h2>
+
+
+<label>
+Audio / Video Recording
+</label>
+
+<input
+type="file"
+accept="audio/*,video/*">
+
+
+
+<label>
+Photo
+</label>
+
+<input
+type="file"
+id="photo"
+accept="image/*">
+
+
+
+<label>
+Name
+</label>
+
+<input id="name">
+
+
+
+<label>
+Home City
+</label>
+
+<input id="city">
+
+
+
+<label>
+Interview Transcript
+</label>
+
+<textarea
+id="transcript"
+rows="12"
+placeholder="Paste transcript here...">
+</textarea>
+
+
+
+<button onclick="publish()">
+
+🚀 Create Interview Story
+
+</button>
+
+
+
+<div id="status"></div>
+
+
+</div>
+
+
+<script>
+
+
+async function publish(){
+
+
+let token =
+localStorage.getItem(
+"github_token"
+);
+
+
+
+if(!token){
+
+token =
+prompt(
+"Enter GitHub token"
+);
+
+
+if(!token){
+
+return;
+
+}
+
+
+localStorage.setItem(
+"github_token",
+token
+);
+
+}
+
+
+
+const name =
+document
+.getElementById("name")
+.value;
+
+
+
+const city =
+document
+.getElementById("city")
+.value;
+
+
+
+const transcript =
+document
+.getElementById("transcript")
+.value;
+
+
+
+let body =
+
+`### Your Name
+
+${name}
+
+
+### Your Home City
+
+${city}
+
+
+### Interview Transcript
+
+${transcript}
+
+
+### Upload Image Link
+
+`;
+
+
+
+
+document
+.getElementById("status")
+.innerHTML =
+"Creating story...";
+
+
+
+const response =
+await fetch(
+
+"https://api.github.com/repos/wc82/humans-of-liquicity/issues",
+
+{
+
+method:"POST",
+
+headers:{
+
+"Authorization":
+"Bearer "+token,
+
+"Accept":
+"application/vnd.github+json"
+
+},
+
+
+body:JSON.stringify({
+
+title:name,
+
+body:body,
+
+labels:[
+
+"human-story"
+
+]
+
+})
+
+
+}
+
+);
+
+
+
+if(response.ok){
+
+document
+.getElementById("status")
+.innerHTML =
+"Story created 🎉";
+
+}
+
+else {
+
+alert(
+await response.text()
+);
+
+}
+
+
+}
+
+
+</script>
+
+
+</body>
+
+</html>
