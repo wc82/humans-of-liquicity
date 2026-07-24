@@ -21,7 +21,7 @@ body {
     margin:auto;
 }
 
-input, textarea, select {
+input, textarea {
 
     width:100%;
     padding:12px;
@@ -36,7 +36,6 @@ input, textarea, select {
 
 }
 
-
 button {
 
     width:100%;
@@ -50,8 +49,9 @@ button {
 
     font-size:18px;
 
-}
+    cursor:pointer;
 
+}
 
 .question {
 
@@ -60,6 +60,20 @@ button {
     padding:15px;
 
     border-radius:15px;
+
+    margin-bottom:20px;
+
+}
+
+.remove {
+
+    background:#ff4444;
+
+    color:white;
+
+    padding:8px;
+
+    margin-bottom:10px;
 
 }
 
@@ -91,12 +105,11 @@ accept="audio/*,video/*">
 
 
 <label>
-Photo
+Photo / Image
 </label>
 
 <input
 type="file"
-id="photo"
 accept="image/*">
 
 
@@ -117,21 +130,37 @@ Home City
 
 
 
+<h3>Interview Questions</h3>
+
+
+<div id="questions"></div>
+
+
+<button onclick="addQuestion()">
+
++ Add Question
+
+</button>
+
+
+<br><br>
+
+
 <label>
-Interview Transcript
+Transcript / Notes (optional)
 </label>
 
 <textarea
-id="transcript"
-rows="12"
-placeholder="Paste transcript here...">
+id="notes"
+rows="8"
+placeholder="Paste raw interview notes here...">
 </textarea>
 
 
 
 <button onclick="publish()">
 
-🚀 Create Interview Story
+🚀 Create Story
 
 </button>
 
@@ -143,7 +172,59 @@ placeholder="Paste transcript here...">
 </div>
 
 
+
 <script>
+
+
+function addQuestion(question="",answer=""){
+
+
+const div =
+document.createElement("div");
+
+
+div.className="question";
+
+
+div.innerHTML = `
+
+<button class="remove" onclick="this.parentElement.remove()">
+Remove
+</button>
+
+
+<label>
+Question
+</label>
+
+<input class="q" value="${question}">
+
+
+<label>
+Answer
+</label>
+
+<textarea class="a">${answer}</textarea>
+
+`;
+
+
+document
+.getElementById("questions")
+.appendChild(div);
+
+
+}
+
+
+
+
+// start with one question
+
+addQuestion();
+
+
+
 
 
 async function publish(){
@@ -157,6 +238,7 @@ localStorage.getItem(
 
 
 if(!token){
+
 
 token =
 prompt(
@@ -176,6 +258,7 @@ localStorage.setItem(
 token
 );
 
+
 }
 
 
@@ -194,13 +277,6 @@ document
 
 
 
-const transcript =
-document
-.getElementById("transcript")
-.value;
-
-
-
 let body =
 
 `### Your Name
@@ -212,15 +288,80 @@ ${name}
 
 ${city}
 
+`;
 
-### Interview Transcript
 
-${transcript}
 
+
+
+document
+.querySelectorAll(".question")
+.forEach(q=>{
+
+
+const question =
+q.querySelector(".q").value;
+
+
+const answer =
+q.querySelector(".a").value;
+
+
+
+if(question.trim()){
+
+
+body +=
+
+`
+
+### ${question}
+
+${answer}
+
+`;
+
+}
+
+
+});
+
+
+
+
+const notes =
+document
+.getElementById("notes")
+.value;
+
+
+
+if(notes.trim()){
+
+
+body +=
+
+`
+
+### Additional Notes
+
+${notes}
+
+`;
+
+}
+
+
+
+body +=
+
+`
 
 ### Upload Image Link
 
+
 `;
+
 
 
 
@@ -228,7 +369,8 @@ ${transcript}
 document
 .getElementById("status")
 .innerHTML =
-"Creating story...";
+"Creating story... 🚀";
+
 
 
 
@@ -251,7 +393,6 @@ headers:{
 
 },
 
-
 body:JSON.stringify({
 
 title:name,
@@ -266,27 +407,31 @@ labels:[
 
 })
 
-
 }
 
 );
 
 
 
+
 if(response.ok){
+
 
 document
 .getElementById("status")
 .innerHTML =
 "Story created 🎉";
 
+
 }
 
 else {
 
+
 alert(
 await response.text()
 );
+
 
 }
 
