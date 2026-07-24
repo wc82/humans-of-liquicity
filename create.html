@@ -233,6 +233,7 @@ addQuestion(q);
 
 
 
+
 function addQuestion(questionText=""){
 
 let div=document.createElement("div");
@@ -242,10 +243,16 @@ div.className="question";
 
 div.innerHTML=`
 
+<button
+type="button"
+class="remove-question"
+onclick="removeQuestion(this)">
+🗑 Remove
+</button>
+
 <label>Question</label>
 
 <input class="q" value="${questionText}">
-
 
 <label>Answer</label>
 
@@ -258,9 +265,36 @@ document
 .getElementById("questions")
 .appendChild(div);
 
+updateRemoveButtons();
+
 }
 
 
+
+function removeQuestion(button){
+
+button.parentElement.remove();
+
+updateRemoveButtons();
+
+}
+
+
+
+function updateRemoveButtons(){
+
+const buttons =
+document.querySelectorAll(".remove-question");
+
+buttons.forEach(btn=>btn.style.display="inline-block");
+
+if(buttons.length===1){
+
+buttons[0].style.display="none";
+
+}
+
+}
 
 window.onload=function(){
 
